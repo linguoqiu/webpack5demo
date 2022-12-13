@@ -19,6 +19,9 @@ module.exports = {
     filename: "bundle.js",
     path: path.join(__dirname, './dist')
   },
+  experiments: {
+    asyncWebAssembly: true,
+  },
   module: {
     rules: [
       // {
@@ -54,22 +57,33 @@ module.exports = {
         ]
       },
       // 解决 file-loader默认使用esmodule 导致
+      // {
+      //   test: /.(jpe?g|png|gif|svg)$/i,
+      //   use: [
+      //     {
+      //       loader: 'file-loader',
+      //       options: {
+      //         esModule: false
+      //       }
+      //     }
+      //   ]
+      // },
       {
-        test: /.(jpe?g|png|gif|svg)$/i,
-        use: [
-          {
-            loader: 'file-loader',
-            options: {
-              esModule: false
-            }
-          }
-        ]
+        test: /\.(png|jpg)$/,
+        type: 'asset/resource',
+        generator: {
+            filename: 'images/[name][ext]',
+        },
       },
       {
         test: /.js$/,
         // use: ['babel-loader']
         loader: "babel-loader",
-      }
+      },
+      {
+        test: /\.wasm$/,
+        type: 'webassembly/async',
+      },
 
     ]
   },
@@ -101,5 +115,12 @@ module.exports = {
   ],
   devServer: {
     hot: true,
-  }
+  },
+  cache: {
+    type: 'filesystem',
+    buildDependencies: {
+      config: [__filename],  // 当构建依赖的config文件（通过 require 依赖）内容发生变化时，缓存失效
+    },
+    name: 'pc',  // 配置以name为隔离，创建不同的缓存文件，如生成不同终端的配置缓存
+  },
 }
